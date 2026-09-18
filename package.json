@@ -1,6 +1,6 @@
 {
   "name": "@atools/qualm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Typed decisions from a System One model, where uncertainty is something you have to handle.",
   "keywords": [
     "jev",
