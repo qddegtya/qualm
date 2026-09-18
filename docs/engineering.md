@@ -56,8 +56,14 @@ registry that this version has never been published — which is what makes the 
 work without a pointless bump, while a second attempt at the same version stops instead of
 silently re-publishing.
 
-If `npm publish` fails after the tag exists, the commit and tag are local only. Undo with
-`git tag -d v<version> && git reset --hard HEAD~1` and start again.
+The version commit is typed `build(release)`. `chore` would also pass commitlint, but only because
+it exempts any commit whose subject is a bare version number — relying on that exemption would mean
+`chore(release): prepare 1.0.0` suddenly failing. `build` is in the allowed Angular types on its own
+merits, so the message stays valid whatever the subject says.
+
+If `npm publish` fails after the tag exists — a mistyped 2FA code is the usual reason — the commit
+and tag are local only. Undo with `git tag -d v<version> && git reset --hard origin/main` and start
+again, passing the one-time password as the second argument.
 
 ## Accepted exceptions
 

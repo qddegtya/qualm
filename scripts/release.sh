@@ -50,9 +50,9 @@ pnpm run verify
 
 step "Tagging"
 if [ -z "$bump" ]; then
-  npm version "$target" --allow-same-version --message "chore(release): %s" >/dev/null
+  npm version "$target" --allow-same-version --message "build(release): %s" >/dev/null
 else
-  npm version "$target" --message "chore(release): %s" >/dev/null
+  npm version "$target" --message "build(release): %s" >/dev/null
 fi
 released="$(node -p "require('./package.json').version")"
 echo "    v$released committed and tagged"
