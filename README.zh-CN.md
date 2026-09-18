@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm"></a>
   <a href="https://github.com/qddegtya/qualm/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/qddegtya/qualm/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="./LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-black"></a>
-  <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-black">
-  <img alt="typescript" src="https://img.shields.io/badge/TypeScript-strict%2B7-black">
-  <img alt="module" src="https://img.shields.io/badge/module-ESM%20%2B%20CJS-black">
-  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm?color=black&label=npm"></a>
+  <img alt="types" src="https://img.shields.io/npm/types/@atools/qualm">
+  <img alt="node" src="https://img.shields.io/node/v/@atools/qualm">
+  <img alt="unpacked size" src="https://img.shields.io/npm/unpacked-size/@atools/qualm">
+  <a href="./LICENSE"><img alt="license" src="https://img.shields.io/npm/l/@atools/qualm"></a>
 </p>
 
 <p align="center"><a href="./README.md">English</a> · <b>简体中文</b></p>
@@ -121,6 +121,8 @@ const action = team.decide({
 
 日后往问题里加一个选项，所有 `decide` 调用点都会立刻编译失败，直到你处理它。而一个带 `default` 的普通 `switch` 会把新情况静默吞掉。
 
+**handler 不接收任何参数。** 它们就是普通的闭包 —— 你写这次决策时作用域里有什么（上面例子里的 `ticket`），handler 里就有什么，不需要经由 `qualm` 传递任何东西。
+
 `unsure` 在置信度低于门槛时执行，因此它天然就是交接给 System 2 的地方：
 
 ```ts
@@ -131,10 +133,10 @@ unsure: () => opus(`读一下这张工单并决定路由：${ticket}`),
 
 ```ts
 // 全部分支同步：直接拿到值，不需要 await，也不产生一个微任务。
-team.decide({ billing: () => refund(t), sales: () => assign(t), unsure: () => queue(t) });
+team.decide({ billing: () => refund(ticket), sales: () => assign(ticket), unsure: () => queue(ticket) });
 
 // 有一个分支是异步的：那个分支的 promise 原样返回，所以 await 这次调用。
-const outcome = await team.decide({ …, unsure: () => opus(`路由这张工单：${t}`) });
+const outcome = await team.decide({ …, unsure: () => opus(`路由这张工单：${ticket}`) });
 ```
 
 **`decide` 自身永远不是 `async`**，所以一个不做 I/O 的决策不花费任何一个 tick，并且依然能用在同步上下文里：

@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm"></a>
   <a href="https://github.com/qddegtya/qualm/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/qddegtya/qualm/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="./LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-black"></a>
-  <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-black">
-  <img alt="typescript" src="https://img.shields.io/badge/TypeScript-strict%2B7-black">
-  <img alt="module" src="https://img.shields.io/badge/module-ESM%20%2B%20CJS-black">
-  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm?color=black&label=npm"></a>
+  <img alt="types" src="https://img.shields.io/npm/types/@atools/qualm">
+  <img alt="node" src="https://img.shields.io/node/v/@atools/qualm">
+  <img alt="unpacked size" src="https://img.shields.io/npm/unpacked-size/@atools/qualm">
+  <a href="./LICENSE"><img alt="license" src="https://img.shields.io/npm/l/@atools/qualm"></a>
 </p>
 
 <p align="center"><b>English</b> · <a href="./README.zh-CN.md">简体中文</a></p>
@@ -149,6 +149,10 @@ const action = team.decide({
 Add a label to the question later and every `decide` call breaks until you handle it. A plain
 `switch` with a `default` would have swallowed it.
 
+Handlers take no arguments. They are ordinary closures, so whatever is in scope where you write the
+decision — `ticket` above — is in scope inside them; nothing has to be threaded through `qualm` to
+get there.
+
 `unsure` runs whenever confidence falls below the bar, which makes it the natural place to hand over
 to System 2:
 
@@ -161,10 +165,10 @@ branch that ran returned — it never wraps it.
 
 ```ts
 // Every branch synchronous: a plain value comes back, with no `await` and no microtask.
-team.decide({ billing: () => refund(t), sales: () => assign(t), unsure: () => queue(t) });
+team.decide({ billing: () => refund(ticket), sales: () => assign(ticket), unsure: () => queue(ticket) });
 
 // One branch async: that branch's promise comes back, so `await` the call.
-const outcome = await team.decide({ …, unsure: () => opus(`Route this: ${t}`) });
+const outcome = await team.decide({ …, unsure: () => opus(`Route this: ${ticket}`) });
 ```
 
 **`decide` is never `async` itself**, so a decision that does no I/O costs no tick and still works
