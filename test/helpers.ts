@@ -28,7 +28,9 @@ export const answered = (answers: Record<string, unknown>) => ({
 });
 
 /** A fetch that replays the given replies in order, repeating the last once they run out. */
-export function replayFetch(replies: readonly { status: number; body?: unknown }[]) {
+export function replayFetch(
+  replies: readonly { status: number; body?: unknown; headers?: Record<string, string> }[],
+) {
   let tries = 0;
   const fetch: typeof globalThis.fetch = () => {
     const reply = replies[Math.min(tries, replies.length - 1)] ?? { status: 200 };
@@ -36,9 +38,28 @@ export function replayFetch(replies: readonly { status: number; body?: unknown }
     return Promise.resolve(
       new Response(JSON.stringify(reply.body ?? {}), {
         status: reply.status,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...reply.headers },
       }),
     );
   };
   return { fetch, tried: () => tries };
 }
+
+/** A fetch that never answers, so only an abort can end the call. */
+export const hangingFetch: typeof globalThis.fetch = (_input, init) =>
+  new Promise((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => {
+      reject(init.signal?.reason);
+    });
+  });
+
+/** A fetch that answers slowly, and always with a status worth retrying. */
+export const slowFetch: typeof globalThis.fetch = (_input, init) =>
+  new Promise((resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => {
+      reject(init.signal?.reason);
+    });
+    setTimeout(() => {
+      resolve(new Response("{}", { status: 429 }));
+    }, 20);
+  });

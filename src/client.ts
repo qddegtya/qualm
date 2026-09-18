@@ -49,6 +49,11 @@ interface Shared {
   readonly fetch?: typeof globalThis.fetch;
   /** How hard to try when the API is rate limited or overloaded. */
   readonly retry?: RetryOptions;
+  /**
+   * Milliseconds allowed for a whole call, retries included. Default 30000, which is generous
+   * for a model that answers in a fraction of a second. Times out with a `TimeoutError`.
+   */
+  readonly timeout?: number;
 }
 
 export interface RequestOptions {
@@ -85,21 +90,23 @@ export function client(options: ClientOptions): Client {
   const fetch = options.fetch ?? globalThis.fetch;
   const model = options.model ?? defaultModel[options.provider];
   const bar = options.confidence ?? defaultConfidence;
+  const timeout = options.timeout ?? defaultTimeout;
   const provider = build(options);
 
   return {
     async ask(state, questions, request) {
-      const payload = await send(
+      const payload = await send({
         fetch,
-        provider.url,
-        {
+        url: provider.url,
+        request: {
           method: "POST",
           headers: { ...provider.headers, "content-type": "application/json" },
           body: JSON.stringify(provider.body({ state, questions, model })),
-          ...(request?.signal && { signal: request.signal }),
         },
-        options.retry,
-      );
+        retry: options.retry,
+        timeout,
+        signal: request?.signal,
+      });
       return collect(questions, provider.unwrap(payload), bar);
     },
   };
@@ -109,6 +116,9 @@ const defaultModel = { typesafe: "jev-latest", cloudflare: "typesafe/jev" } as c
 
 // Arbitrary, and documented as such. Nothing about the model makes one number the right one.
 const defaultConfidence = 0.7;
+
+// Generous for a model that answers in a fraction of a second; the point is that there is a limit.
+const defaultTimeout = 30_000;
 
 function build(options: ClientOptions): Provider {
   if (options.provider === "cloudflare") {
