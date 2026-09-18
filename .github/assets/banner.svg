@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="qualm">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#05070f"/>
+      <stop offset="62%" stop-color="#0a1024"/>
+      <stop offset="100%" stop-color="#130a26"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8be9fd"/>
+      <stop offset="52%" stop-color="#7aa2f7"/>
+      <stop offset="100%" stop-color="#e879c7"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0abfc" stop-opacity=".40"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity=".40"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="2" fill="#000" opacity=".26"/>
+    </pattern>
+    <clipPath id="frame"><rect width="1200" height="360" rx="14"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="360" fill="url(#sky)"/>
+    <ellipse cx="600" cy="326" rx="322" ry="108" fill="url(#sun)"/>
+
+    <!-- retro grid horizon -->
+    <g stroke="url(#fade)" stroke-width="1.1" fill="none">
+      <path d="M0 298H1200M0 312H1200M0 330H1200M0 352H1200"/>
+      <path d="M600 296 -220 360M600 296 60 360M600 296 300 360M600 296 470 360M600 296 600 360M600 296 730 360M600 296 900 360M600 296 1140 360M600 296 1420 360"/>
+    </g>
+    <path d="M0 296H1200" stroke="#67e8f9" stroke-width="1.6" opacity=".7"/>
+
+    <rect width="1200" height="360" fill="url(#scan)"/>
+
+    <!-- QUALM, drawn as strokes so it renders identically everywhere -->
+    <g fill="none" stroke="url(#ink)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+      <!-- Q -->
+      <rect x="330" y="104" width="84" height="120" rx="42"/>
+      <path d="M386 196 424 236"/>
+      <!-- U -->
+      <path d="M456 104v86a34 34 0 0 0 68 0v-86"/>
+      <!-- A -->
+      <path d="M566 224 608 104l42 120M578 190h60"/>
+      <!-- L -->
+      <path d="M692 104v120h72"/>
+      <!-- M -->
+      <path d="M806 224V104l44 74 44-74v120"/>
+    </g>
+
+    <text x="600" y="276" text-anchor="middle" fill="#9fb4d9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" letter-spacing="7.5">TYPED  DECISIONS  ·  SYSTEM 1 → SYSTEM 2</text>
+    <text x="600" y="72" text-anchor="middle" fill="#4d628a" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12.5" letter-spacing="5.5">AN UNCERTAIN ANSWER IS A DIFFERENT TYPE</text>
+
+    <rect x=".8" y=".8" width="1198.4" height="358.4" rx="13" fill="none" stroke="#1e3a5f" stroke-width="1.6"/>
+  </g>
+</svg>

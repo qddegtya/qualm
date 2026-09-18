@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "promise", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "warn",
+    "perf": "warn"
+  },
+  "ignorePatterns": ["dist"]
+}

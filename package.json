@@ -1,0 +1,66 @@
+{
+  "name": "qualm",
+  "version": "0.0.0",
+  "description": "Typed decisions from a System One model, where uncertainty is something you have to handle.",
+  "keywords": [
+    "jev",
+    "typesafe",
+    "system-one",
+    "decision",
+    "classification",
+    "confidence"
+  ],
+  "license": "MIT",
+  "author": "qddegtya",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qddegtya/qualm.git"
+  },
+  "homepage": "https://github.com/qddegtya/qualm#readme",
+  "bugs": "https://github.com/qddegtya/qualm/issues",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.29.2",
+  "scripts": {
+    "attw": "attw --pack . --ignore-rules no-resolution cjs-resolves-to-esm",
+    "build": "tsdown",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "dev": "vitest",
+    "format": "oxlint . --fix && prettier --write .",
+    "lint": "pnpm run lint:code && pnpm run lint:types && pnpm run lint:format",
+    "lint:code": "oxlint .",
+    "lint:format": "prettier --check .",
+    "lint:types": "oxlint --type-aware -A all -D typescript/no-floating-promises -D typescript/no-misused-promises .",
+    "prepack": "pnpm run build",
+    "prepare": "simple-git-hooks",
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm run check && pnpm run build && pnpm run attw"
+  },
+  "simple-git-hooks": {
+    "commit-msg": "pnpm exec commitlint --edit $1"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-angular": "^21.2.2",
+    "@vitest/coverage-v8": "^5.0.1",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "prettier": "^3.9.8",
+    "publint": "^0.3.24",
+    "simple-git-hooks": "^2.14.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}
