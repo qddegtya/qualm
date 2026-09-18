@@ -7,7 +7,8 @@
   <a href="./LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-black"></a>
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-black">
   <img alt="typescript" src="https://img.shields.io/badge/TypeScript-strict%2B7-black">
-  <img alt="esm" src="https://img.shields.io/badge/module-ESM%20only-black">
+  <img alt="module" src="https://img.shields.io/badge/module-ESM%20%2B%20CJS-black">
+  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm?color=black&label=npm"></a>
 </p>
 
 <p align="center"><a href="./README.md">English</a> · <b>简体中文</b></p>
@@ -15,6 +16,19 @@
 面向 System One 模型（[TypeSafe 的 Jev](https://typesafe.ai/)）的类型化决策库 —— 在这里，**不确定性是一件你必须处理的事**。
 
 一个把判断塌缩成 `boolean`、或者塌缩成一个裸 argmax 的 API，扔掉的恰恰是唯一能告诉你"该升级了"的信号。qualm 不这么干：每一次决策都有 `unsure` 分支，而且编译器不允许你忘记它。
+
+## 这个库带来了什么
+
+Jev 是模型。下面这些是 `qualm` 在"自己去调它的 HTTP API"之上加的东西。
+
+- **问题读起来就是问题。** 标签模板让问题文本**本身就是代码** —— ``is`这条消息透露出紧急感` `` —— 而不是一个由 `type`、`instructions`、`criteria` 拼出来的 JSON 字面量。
+- **答案的类型就是你的类型。** 选项以你声明的字面量联合返回，而不是 `string`，所以分支名拼错是编译错误，而不是静默失配。
+- **不确定性是一个你必须写出来的分支。** `unsure` 是每次决策的必填键，忽略它的决策编译不过。
+- **交接给 System 2 只需要一行。** 把 LLM 调用放进 `unsure`，`decide` 会把它的 promise 原样透传 —— 这次交接没有任何特殊处理。
+- **Jev 的三个原语全部支持**，且各自保留完整的概率分布和置信度：`is` 判断命题，`choice` 做选择，`score` 对评分表定位。
+- **一套 API 背后两个 provider** —— TypeSafe 官方端点与 Cloudflare Workers AI。
+- **重试、取消与类型化错误。** `429` 和 `5xx` 上的退避重试（遵守 `Retry-After`）、`AbortSignal` 支持，以及携带状态码和已解析 body 的 `ApiError`。
+- **零运行时依赖**，以 ESM 和 CJS 双格式发布，各自带独立的类型声明。
 
 ---
 
@@ -49,25 +63,29 @@ flowchart LR
     class llm slow
 ```
 
-## 怎么用
+## 安装
 
-**刻意没有发布到 npm。** 直接指向一份检出：
-
-```jsonc
-// package.json
-"dependencies": { "qualm": "link:../qualm" }
+```sh
+pnpm add @atools/qualm
+npm install @atools/qualm
+yarn add @atools/qualm
 ```
 
-在本仓库内部，examples 通过 pnpm workspace 引用它。
+ESM 与 CJS 并行发布，各自带独立的类型声明，所以下面两种写法都能用，`tsc` 在 `moduleResolution: nodenext` 下也都能解析：
 
-零运行时依赖。仅 ESM，Node 20+。可运行在 Node、Workers、Deno、Bun 和浏览器。
+```ts
+import { client } from "@atools/qualm"; // ESM
+const { client } = require("@atools/qualm"); // CJS
+```
+
+零运行时依赖。Node 20+。可运行在 Node、Workers、Deno、Bun 和浏览器。
 
 ## 提问
 
 一次请求里的多个问题是**独立并行**求值的，延迟几乎不随问题数增长 —— 所以应该问很多个窄问题，而不是一个宽问题。API 接收一个 record，正是因为 record 对这件事是诚实的：**问十件事和问一件事的代价差不多**。
 
 ```ts
-import { choice, client, is, score } from "qualm";
+import { choice, client, is, score } from "@atools/qualm";
 
 const jev = client({ provider: "cloudflare", accountId: "…" }); // 读取 CLOUDFLARE_API_TOKEN
 
@@ -156,6 +174,8 @@ client({ provider: "typesafe", apiKey }); //             TYPESAFE_API_KEY
 ```
 
 密钥会回退到上述环境变量，且**在调用时才读取** —— 导入这个包不执行任何东西，这正是 `sideEffects: false` 所承诺的。
+
+Cloudflare provider 是按 Cloudflare 官方文档的 wire 格式实现的。**有一处尚未对真实响应确认**：REST 的 body 是否包在 Cloudflare 的 `{ result }` 信封里。这一点以 unverified 的形式记录在 [`docs/jev-api.md`](./docs/jev-api.md)，会在第一次真实调用时收口。
 
 ## 失败
 

@@ -7,7 +7,8 @@
   <a href="./LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-black"></a>
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-black">
   <img alt="typescript" src="https://img.shields.io/badge/TypeScript-strict%2B7-black">
-  <img alt="esm" src="https://img.shields.io/badge/module-ESM%20only-black">
+  <img alt="module" src="https://img.shields.io/badge/module-ESM%20%2B%20CJS-black">
+  <a href="https://www.npmjs.com/package/@atools/qualm"><img alt="npm" src="https://img.shields.io/npm/v/@atools/qualm?color=black&label=npm"></a>
 </p>
 
 <p align="center"><b>English</b> · <a href="./README.zh-CN.md">简体中文</a></p>
@@ -18,6 +19,26 @@ is something you have to handle.
 A judgment that collapses to `boolean`, or to a bare `argmax`, throws away the one signal that tells
 you when to escalate. `qualm` never does that: every decision has an `unsure` branch, and the
 compiler will not let you forget it.
+
+## What this library gives you
+
+Jev is the model. This is what `qualm` adds on top of calling its HTTP API yourself.
+
+- **Questions read as questions.** Tagged templates mean the question text _is_ the code —
+  ``is`This message conveys urgency` `` — instead of a JSON literal you assemble from `type`,
+  `instructions` and `criteria` keys.
+- **The answer's type is your type.** Labels come back as the literal union you declared, not as
+  `string`, so a typo in a branch name is a compile error rather than a silent miss.
+- **Uncertainty is a branch you have to write.** `unsure` is a required key on every decision. A
+  decision that ignores it does not compile.
+- **Handing over to System 2 is one line.** Put your LLM call in `unsure`; `decide` passes its
+  promise straight through, so nothing about the handover is special-cased.
+- **All three of Jev's primitives**, each keeping its full distribution and confidence: `is` for a
+  proposition, `choice` for a selection, `score` for a rubric.
+- **Two providers behind one API** — TypeSafe's own endpoint and Cloudflare Workers AI.
+- **Retries, cancellation and typed errors.** Backoff on `429` and `5xx` honouring `Retry-After`,
+  `AbortSignal` support, and an `ApiError` carrying the status and parsed body.
+- **Zero runtime dependencies**, shipped as ESM and CJS with separate declarations for each.
 
 ---
 
@@ -61,18 +82,23 @@ flowchart LR
     class llm slow
 ```
 
-## Use it
+## Install
 
-**Not on npm, on purpose.** Point a dependency at a checkout:
-
-```jsonc
-// package.json
-"dependencies": { "qualm": "link:../qualm" }
+```sh
+pnpm add @atools/qualm
+npm install @atools/qualm
+yarn add @atools/qualm
 ```
 
-Inside this repo the examples reach it through the pnpm workspace.
+ESM and CJS ship side by side, each with its own declarations, so both of these work and `tsc`
+resolves either under `moduleResolution: nodenext`:
 
-Zero runtime dependencies. ESM only, Node 20+. Runs in Node, Workers, Deno, Bun and the browser.
+```ts
+import { client } from "@atools/qualm"; // ESM
+const { client } = require("@atools/qualm"); // CJS
+```
+
+Zero runtime dependencies. Node 20+. Runs in Node, Workers, Deno, Bun and the browser.
 
 ## Ask
 
@@ -81,7 +107,7 @@ their number — so ask many narrow questions rather than one broad one. The API
 because a record is honest about that: asking ten things costs about what asking one costs.
 
 ```ts
-import { choice, client, is, score } from "qualm";
+import { choice, client, is, score } from "@atools/qualm";
 
 const jev = client({ provider: "cloudflare", accountId: "…" }); // reads CLOUDFLARE_API_TOKEN
 
@@ -185,6 +211,11 @@ client({ provider: "typesafe", apiKey }); //             TYPESAFE_API_KEY
 
 Keys fall back to those environment variables, read at call time — importing this package runs
 nothing, which is what `sideEffects: false` promises.
+
+The Cloudflare provider is built from Cloudflare's documented wire format. One detail is not yet
+confirmed against a live response: whether the REST body arrives inside Cloudflare's `{ result }`
+envelope. It is recorded as unverified in [`docs/jev-api.md`](./docs/jev-api.md) and will be settled
+by the first real call.
 
 ## Failures
 
