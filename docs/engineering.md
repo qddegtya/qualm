@@ -43,6 +43,12 @@ Coverage thresholds sit at 85% in `vitest.config.ts`. They exist to catch a file
 `package.json` `attw.ignoreRules` field was tried first and is not honoured — only the CLI flags are.
 Revisit if a real CJS consumer appears.
 
+**The library supports Node 20; the build does not.** tsdown loads `tsdown.config.ts` through
+`unrun`, which Node 20 cannot do without native TypeScript stripping (added in 22.6). Lint, typecheck
+and the whole test suite pass on Node 20, so `engines` stays at `>=20` — that field describes what
+consumers need, and consumers do not build. CI therefore runs `check` across 20, 22 and 24 and
+builds only on 24.
+
 **tsdown warns that the TypeScript 7 API is experimental.** Declaration emit was verified by hand
 against `const` type parameters, `infer ... extends`, nested conditional types and discriminated
 unions using `?: never`; every one survived intact into the emitted `.d.mts`. Re-verify if the output
