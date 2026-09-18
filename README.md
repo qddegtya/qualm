@@ -10,6 +10,8 @@
   <img alt="esm" src="https://img.shields.io/badge/module-ESM%20only-black">
 </p>
 
+<p align="center"><b>English</b> · <a href="./README.zh-CN.md">简体中文</a></p>
+
 Typed decisions from a System One model ([TypeSafe's Jev](https://typesafe.ai/)), where uncertainty
 is something you have to handle.
 
