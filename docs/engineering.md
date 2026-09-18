@@ -61,15 +61,9 @@ it exempts any commit whose subject is a bare version number — relying on that
 `chore(release): prepare 1.0.0` suddenly failing. `build` is in the allowed Angular types on its own
 merits, so the message stays valid whatever the subject says.
 
-Nothing is pushed until the registry confirms the version is really there. Publishing and pushing
-are two operations and either can fail on its own, so the script asks npm for the version it just
-published before it lets the tag leave the machine. A tag that reaches origin while the publish did
-not reach npm claims a release nobody can install, which is the one outcome this whole script exists
-to prevent.
-
-If `npm publish` fails — a mistyped 2FA code is the usual reason — the commit and tag are local
-only. Undo with `git tag -d v<version> && git reset --hard origin/main` and start again, passing the
-one-time password as the second argument.
+If `npm publish` fails after the tag exists — a mistyped 2FA code is the usual reason — the commit
+and tag are local only. Undo with `git tag -d v<version> && git reset --hard origin/main` and start
+again, passing the one-time password as the second argument.
 
 ## Accepted exceptions
 

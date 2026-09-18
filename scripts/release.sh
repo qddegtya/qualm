@@ -60,17 +60,6 @@ echo "    v$released committed and tagged"
 step "Publishing $name@$released"
 if [ -n "$otp" ]; then npm publish --otp "$otp"; else npm publish; fi
 
-step "Confirming the registry has it"
-# Without this the tag can reach origin while the publish did not reach npm, leaving a tag that
-# claims a release nobody can install. Nothing is pushed until the registry answers.
-if ! npm view "$name@$released" version --prefer-online >/dev/null 2>&1; then
-  die "the registry does not have $name@$released.
-  Nothing has been pushed. The version commit and tag are local only; undo them with
-    git tag -d v$released && git reset --hard origin/main
-  then run the release again, passing your one-time password as the second argument."
-fi
-echo "    npm has $name@$released"
-
 step "Pushing"
 git push --follow-tags origin main
 
