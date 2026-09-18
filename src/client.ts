@@ -35,6 +35,14 @@ export type AnswerFor<Q extends Question> = Q extends IsQuestion
 
 export type Answers<Q extends Questions> = { readonly [K in keyof Q]: AnswerFor<Q[K]> };
 
+/** What one request cost, and which model version actually answered it. */
+export interface Usage {
+  /** The concrete version that answered, even when the request asked for an alias. */
+  readonly model: string;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+}
+
 interface Shared {
   /**
    * Minimum confidence a decision acts on, unless a call site says otherwise.
@@ -54,11 +62,15 @@ interface Shared {
    * for a model that answers in a fraction of a second. Times out with a `TimeoutError`.
    */
   readonly timeout?: number;
+  /** Called after each answered request with what it cost. Exceptions from it are not caught. */
+  readonly onUsage?: (usage: Usage) => void;
 }
 
 export interface RequestOptions {
   /** Cancels the request. */
   readonly signal?: AbortSignal;
+  /** Replaces the client's handler for this call. */
+  readonly onUsage?: (usage: Usage) => void;
 }
 
 export type ClientOptions = Shared &
@@ -107,7 +119,14 @@ export function client(options: ClientOptions): Client {
         timeout,
         signal: request?.signal,
       });
-      return collect(questions, provider.unwrap(payload), bar);
+      const result = provider.unwrap(payload);
+      const report = request?.onUsage ?? options.onUsage;
+      report?.({
+        model: result.model,
+        inputTokens: result.usage.input_tokens,
+        outputTokens: result.usage.output_tokens,
+      });
+      return collect(questions, result, bar);
     },
   };
 }

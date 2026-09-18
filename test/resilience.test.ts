@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { client, is } from "../src/index.ts";
+import { ApiError, client, is } from "../src/index.ts";
 import { answered, hangingFetch, replayFetch, slowFetch, stubFetch } from "./helpers.ts";
 
 const question = { urgent: is`This conveys urgency` };
@@ -120,4 +120,52 @@ test("leaves no timer behind once the request is done", async () => {
   await client({ provider: "typesafe", apiKey: "k", fetch, timeout: 5000 }).ask("...", question);
 
   expect(cleared.length).toBeGreaterThan(0);
+});
+
+test("reports what the call cost and which model version answered", async () => {
+  const seen: unknown[] = [];
+  const { fetch } = stubFetch({
+    model: "jev-1.12",
+    answers: { urgent: { type: "noul", noul: 0.9 } },
+    usage: { input_tokens: 312, output_tokens: 48 },
+  });
+
+  await client({ provider: "typesafe", apiKey: "k", fetch, onUsage: (u) => seen.push(u) }).ask(
+    "...",
+    question,
+  );
+
+  expect(seen).toEqual([{ model: "jev-1.12", inputTokens: 312, outputTokens: 48 }]);
+});
+
+test("a handler passed with the call replaces the client's", async () => {
+  const onClient: unknown[] = [];
+  const onCall: unknown[] = [];
+  const { fetch } = stubFetch(ok);
+
+  await client({ provider: "typesafe", apiKey: "k", fetch, onUsage: (u) => onClient.push(u) }).ask(
+    "...",
+    question,
+    { onUsage: (u) => onCall.push(u) },
+  );
+
+  expect(onClient).toEqual([]);
+  expect(onCall).toHaveLength(1);
+});
+
+test("a failed call reports no usage, because none was returned", async () => {
+  const seen: unknown[] = [];
+  const { fetch } = stubFetch({}, { status: 500 });
+
+  await expect(
+    client({
+      provider: "typesafe",
+      apiKey: "k",
+      fetch,
+      retry: { attempts: 1 },
+      onUsage: (u) => seen.push(u),
+    }).ask("...", question),
+  ).rejects.toBeInstanceOf(ApiError);
+
+  expect(seen).toEqual([]);
 });
