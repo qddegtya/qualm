@@ -35,6 +35,30 @@ union, so the rule cannot quietly lose the type it keys on.
 Coverage thresholds sit at 85% in `vitest.config.ts`. They exist to catch a file nobody tested. See
 `AGENTS.md` for why that is a floor and not a goal.
 
+## Releasing
+
+```sh
+pnpm run release          # first release, or re-cut the version already in package.json
+pnpm run release patch    # 1.0.0 -> 1.0.1
+pnpm run release minor    # 1.0.0 -> 1.1.0
+pnpm run release major    # 1.0.0 -> 2.0.0
+pnpm run release 1.4.2    # an explicit version
+pnpm run release patch 123456   # trailing argument is a 2FA one-time password
+```
+
+One command does the whole thing: it refuses unless you are on `main` with a clean tree in sync with
+origin and logged in to npm, runs `verify`, then `npm version` to bump, commit and tag, then
+publishes, then pushes the commit and the tag together. Version, tag and published artifact always
+agree, so any release can be traced back to the exact code it was cut from.
+
+With no argument it releases the version already in `package.json`, but only after checking the
+registry that this version has never been published — which is what makes the very first release
+work without a pointless bump, while a second attempt at the same version stops instead of
+silently re-publishing.
+
+If `npm publish` fails after the tag exists, the commit and tag are local only. Undo with
+`git tag -d v<version> && git reset --hard HEAD~1` and start again.
+
 ## Accepted exceptions
 
 **The library supports Node 20; the build does not.** tsdown loads `tsdown.config.ts` through
