@@ -65,6 +65,7 @@
     "lint:types": "oxlint --type-aware -A all -D typescript/no-floating-promises -D typescript/no-misused-promises .",
     "prepack": "pnpm run build",
     "prepare": "simple-git-hooks",
+    "prepublishOnly": "pnpm run check",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "verify": "pnpm run check && pnpm run build && pnpm run attw && pnpm run verify:package",
