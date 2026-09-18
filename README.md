@@ -40,21 +40,23 @@ design is the seam where fast judgment hands over to slow reasoning.
 
 ```mermaid
 flowchart LR
-    state["Program state<br/>text · records · logs"] --> ask
+    state["Program state<br/>text · records · logs"]
+    ask["<b>qualm</b> · ask()<br/>one request<br/>N questions in parallel"]
+    jev["<b>Jev · System 1</b><br/>fast · typed<br/>cannot hallucinate"]
+    decide["<b>qualm</b> · decide()<br/>every branch,<br/>plus unsure"]
+    code["Your code runs"]
+    llm["<b>LLM · System 2</b><br/>slow · costly<br/>can reason"]
 
-    subgraph qualm [" qualm "]
-        direction TB
-        ask["ask(state, questions)"]
-        decide["decide — every branch, plus unsure"]
-        ask --> decide
-    end
-
-    ask -->|"one request · N questions in parallel"| jev["<b>Jev · System 1</b><br/>fast · typed · no text"]
-    jev -->|"probabilities + confidence"| decide
-
-    decide -->|"confidence ≥ bar"| code["Your code runs"]
-    decide -->|"below the bar"| llm["<b>LLM · System 2</b><br/>slow · costly · reasons"]
+    state --> ask --> jev
+    jev -->|"probabilities<br/>+ confidence"| decide
+    decide -->|"confidence ≥ bar"| code
+    decide -->|"below the bar"| llm
     llm --> code
+
+    classDef fast fill:#e0f7fa,stroke:#0891b2,stroke-width:2px,color:#083344
+    classDef slow fill:#fce7f3,stroke:#be185d,stroke-width:2px,color:#500724
+    class jev fast
+    class llm slow
 ```
 
 ## Install
