@@ -37,12 +37,6 @@ Coverage thresholds sit at 85% in `vitest.config.ts`. They exist to catch a file
 
 ## Accepted exceptions
 
-**ESM only, `node >= 20`.** No CJS build. attw therefore reports `no-resolution` (node10) and
-`cjs-resolves-to-esm` (node16 from CJS). Both are consequences of that decision, not defects, so the
-`attw` script passes them as explicit `--ignore-rules` rather than hiding them in config. A
-`package.json` `attw.ignoreRules` field was tried first and is not honoured — only the CLI flags are.
-Revisit if a real CJS consumer appears.
-
 **The library supports Node 20; the build does not.** tsdown loads `tsdown.config.ts` through
 `unrun`, which Node 20 cannot do without native TypeScript stripping (added in 22.6). Lint, typecheck
 and the whole test suite pass on Node 20, so `engines` stays at `>=20` — that field describes what

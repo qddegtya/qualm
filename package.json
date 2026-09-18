@@ -1,6 +1,6 @@
 {
-  "name": "qualm",
-  "version": "0.0.0",
+  "name": "@atools/qualm",
+  "version": "1.0.0",
   "description": "Typed decisions from a System One model, where uncertainty is something you have to handle.",
   "keywords": [
     "jev",
@@ -8,10 +8,16 @@
     "system-one",
     "decision",
     "classification",
-    "confidence"
+    "confidence",
+    "type-safe",
+    "llm",
+    "ai",
+    "routing",
+    "guardrails",
+    "cloudflare-workers-ai"
   ],
   "license": "MIT",
-  "author": "qddegtya",
+  "author": "qddegtya <qddegtya@gmail.com> (https://github.com/qddegtya)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/qddegtya/qualm.git"
@@ -20,18 +26,35 @@
   "bugs": "https://github.com/qddegtya/qualm/issues",
   "type": "module",
   "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
   "files": [
     "dist"
   ],
-  "exports": {
-    ".": "./dist/index.mjs"
-  },
   "engines": {
     "node": ">=20"
   },
   "packageManager": "pnpm@10.29.2",
+  "publishConfig": {
+    "access": "public",
+    "provenance": false
+  },
   "scripts": {
-    "attw": "attw --pack . --ignore-rules no-resolution cjs-resolves-to-esm",
+    "attw": "attw --pack .",
     "build": "tsdown",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
     "dev": "vitest",
@@ -44,7 +67,8 @@
     "prepare": "simple-git-hooks",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm run check && pnpm run build && pnpm run attw"
+    "verify": "pnpm run check && pnpm run build && pnpm run attw && pnpm run verify:package",
+    "verify:package": "./scripts/verify-package.sh"
   },
   "simple-git-hooks": {
     "commit-msg": "pnpm exec commitlint --edit $1"
