@@ -59,11 +59,16 @@ flowchart LR
     class llm slow
 ```
 
-## Install
+## Use it
 
-```sh
-pnpm add qualm
+**Not on npm, on purpose.** Point a dependency at a checkout:
+
+```jsonc
+// package.json
+"dependencies": { "qualm": "link:../qualm" }
 ```
+
+Inside this repo the examples reach it through the pnpm workspace.
 
 Zero runtime dependencies. ESM only, Node 20+. Runs in Node, Workers, Deno, Bun and the browser.
 
