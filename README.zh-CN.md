@@ -27,7 +27,8 @@ Jev 是模型。下面这些是 `qualm` 在"自己去调它的 HTTP API"之上�
 - **交接给 System 2 只需要一行。** 把 LLM 调用放进 `unsure`，`decide` 会把它的 promise 原样透传 —— 这次交接没有任何特殊处理。
 - **Jev 的三个原语全部支持**，且各自保留完整的概率分布和置信度：`is` 判断命题，`choice` 做选择，`score` 对评分表定位。
 - **一套 API 背后两个 provider** —— TypeSafe 官方端点与 Cloudflare Workers AI。
-- **重试、取消与类型化错误。** `429` 和 `5xx` 上的退避重试（遵守 `Retry-After`）、`AbortSignal` 支持，以及携带状态码和已解析 body 的 `ApiError`。
+- **看得到一次调用花了多少。** `onUsage` 报告 token 消耗和真正作答的模型版本，做计量不必自己再解析一遍响应。
+- **重试、取消与超时。** `429` 和 `5xx` 上**带抖动的**退避重试（遵守 `Retry-After`）、覆盖整次调用的默认超时、`AbortSignal` 支持，以及携带状态码和已解析 body 的 `ApiError`。
 - **零运行时依赖**，以 ESM 和 CJS 双格式发布，各自带独立的类型声明。
 
 ---
@@ -181,11 +182,30 @@ Cloudflare provider 是按 Cloudflare 官方文档的 wire 格式实现的。**�
 
 ## 失败
 
-被拒绝的请求会抛出 `ApiError`，携带 `status` 和解析后的 `body`。限流（`429`）和服务端故障（`5xx`）会以指数退避重试，并遵守 `Retry-After`；**你自己写错的东西不会被重试**，因为再试一次也救不了。
+被拒绝的请求会抛出 `ApiError`，携带 `status` 和解析后的 `body`。限流（`429`）和服务端故障（`5xx`）会被重试；**你自己写错的东西不会**，因为再试一次也救不了。
 
 ```ts
-client({ …, retry: { attempts: 3, baseDelay: 500 } });
+client({ …, retry: { attempts: 3, baseDelay: 500 }, timeout: 30_000 });
 await jev.ask(ticket, questions, { signal });
+```
+
+退避是**指数退避加上完全抖动**。没有抖动的话，一百个撞上同一个限流的调用会在同一毫秒一起回来、再一起撞墙 —— 重试机制会持续喂养它本该缓解的拥塞。而 `Retry-After` 头会被精确遵守，因为服务端已经说了什么时候回来。
+
+每次调用都有截止时间，默认 30 秒，**覆盖整个调用而不是每次尝试**。超时以 `TimeoutError` 中止；你自己传的 `signal` 仍然以你自己的原因中止。
+
+## 一次调用花了多少
+
+API 会报告 token 消耗，以及 `jev-latest` 这类别名背后真正作答的模型版本。`onUsage` 把两者交给你：
+
+```ts
+const jev = client({ …, onUsage: ({ model, inputTokens }) => meter.add(model, inputTokens) });
+
+// 或者只针对某一次调用
+await jev.ask(ticket, questions, { onUsage: (usage) => console.log(usage) });
+```
+
+```ts
+{ model: "jev-1.12", inputTokens: 312, outputTokens: 48 }
 ```
 
 ## 内部结构

@@ -36,8 +36,11 @@ Jev is the model. This is what `qualm` adds on top of calling its HTTP API yours
 - **All three of Jev's primitives**, each keeping its full distribution and confidence: `is` for a
   proposition, `choice` for a selection, `score` for a rubric.
 - **Two providers behind one API** — TypeSafe's own endpoint and Cloudflare Workers AI.
-- **Retries, cancellation and typed errors.** Backoff on `429` and `5xx` honouring `Retry-After`,
-  `AbortSignal` support, and an `ApiError` carrying the status and parsed body.
+- **See what a call cost.** `onUsage` reports the token counts and the concrete model version that
+  answered, so metering does not mean re-parsing the response yourself.
+- **Retries, cancellation and deadlines.** Jittered backoff on `429` and `5xx` honouring
+  `Retry-After`, a default timeout covering the whole call, `AbortSignal` support, and an `ApiError`
+  carrying the status and parsed body.
 - **Zero runtime dependencies**, shipped as ESM and CJS with separate declarations for each.
 
 ---
@@ -224,12 +227,35 @@ by the first real call.
 ## Failures
 
 A refused request throws `ApiError` with its `status` and parsed `body`. Rate limits (`429`) and
-server faults (`5xx`) are retried with exponential backoff, honouring `Retry-After`; anything you got
-wrong is not retried, because trying again cannot help.
+server faults (`5xx`) are retried; anything you got wrong is not, because trying again cannot help.
 
 ```ts
-client({ …, retry: { attempts: 3, baseDelay: 500 } });
+client({ …, retry: { attempts: 3, baseDelay: 500 }, timeout: 30_000 });
 await jev.ask(ticket, questions, { signal });
+```
+
+Backoff is **exponential with full jitter**. Without the jitter, a hundred calls that hit the same
+rate limit would all come back in the same millisecond and hit it again — the retry would keep
+feeding the stampede it was meant to relieve. A `Retry-After` header is honoured exactly instead,
+since the server has said when to return.
+
+Every call has a deadline, 30 seconds by default, covering the retries rather than each attempt. It
+aborts with a `TimeoutError`, and your own `signal` still aborts with your own reason.
+
+## What a call cost
+
+The API reports token counts and the concrete model version behind an alias like `jev-latest`.
+`onUsage` hands both to you:
+
+```ts
+const jev = client({ …, onUsage: ({ model, inputTokens }) => meter.add(model, inputTokens) });
+
+// or for one call only
+await jev.ask(ticket, questions, { onUsage: (usage) => console.log(usage) });
+```
+
+```ts
+{ model: "jev-1.12", inputTokens: 312, outputTokens: 48 }
 ```
 
 ## Inside
